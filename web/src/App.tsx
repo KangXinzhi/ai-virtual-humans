@@ -10,14 +10,44 @@ const synth = SpeechSynthesisSingleton.getInstance()
 
 function App() {
   const [msg, setMsg] = useState('')
+  const [outMessage, setOutputMessage] = useState('')
+
   const [tempMsg, setTempMsg] = useState('')
 
   const [openMic, setOpenMic] = useState(false)
   let final_transcript = "";
 
+  const handleSend = () => {
+    synth.speak('谷歌展出了他们的智能语音助理，其人声的拟真度把所有观众惊呆了。')
+    // const temp = msg
+    // // 将api_url替换为你的API接口地址
+    // const api_url = 'http://127.0.0.1:8002/chat'
 
+    // const testData = { topic: temp }
+
+    // // 发送POST请求
+    // fetch(api_url, {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    //   body: JSON.stringify(testData),
+    // })
+    //   .then(response => response.json())
+    //   .then((data) => {
+    //     // 处理响应数据
+    //     console.log(data)
+    //     synth.speak(JSON.stringify(data.text))
+    //     setOutputMessage(JSON.stringify(data.text))
+    //   })
+    //   .catch((error) => {
+    //     console.error(error)
+    //   })
+  }
 
   const handlePressStart = async () => {
+    setMsg('')
+    setOutputMessage('')
     setOpenMic(true)
   };
 
@@ -84,7 +114,9 @@ function App() {
       <div className=" w-[30vw] h-full absolute right-0 top-0 bg-black text-white bg-opacity-30 ">
         <span>{msg}{tempMsg}</span>
         <hr/>
-        <span></span>
+        <span>
+          {outMessage}
+        </span>
         <div className="box-border absolute bottom-0 w-full h-[300px]  flex items-center justify-center">
           <div
             className="w-16 h-16 flex items-center justify-center bg-green-400 rounded-full cursor-pointer"
@@ -99,11 +131,7 @@ function App() {
           <span className='w-[50px]'/>
           <div
             className="w-16 h-16 flex items-center justify-center bg-blue-400 rounded-full cursor-pointer"
-            onTouchStart={handlePressStart}
-            onTouchEnd={handlePressEnd}
-            onMouseDown={handlePressStart}
-            onMouseUp={handlePressEnd}
-            onMouseLeave={handlePressEnd}
+            onClick={handleSend}
           >
             <svg viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="3059" width="2rem" height="2rem"><path d="M0 0l1024 512L0 1024V0z m0 409.6v204.8l512-102.4L0 409.6z" p-id="3060" fill="#ffffff"></path></svg>
           </div>

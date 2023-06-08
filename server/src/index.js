@@ -16,11 +16,11 @@ app.use(bodyParser.urlencoded({ extended: true })); // 解析urlencoded格式的
 // 定义聊天相关接口
 // 请求数据
 app.post('/chat', async (req, res) => {
-  const { topic, answer } = req.body; // 获取请求体中的data字段
-  console.log(topic,answer)
+  const { topic } = req.body; // 获取请求体中的data字段
+  console.log(topic);
 
-  if (!topic || !answer) return;
-  const response = await chatLangChain(topic, answer); // 处理数据
+  if (!topic) return;
+  const response = await chatLangChain(topic); // 处理数据
   console.log(response);
   res.send(response); // 返回新数据
 });
