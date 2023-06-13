@@ -1,34 +1,37 @@
-import { useState, useEffect } from "react";
-import "./App.css";
-import { World, Model, OrbitCamera, Editor, usePreload } from "lingo3d-react";
-import SpeechRecognitionSingleton from "./utils/SpeechRecognitionSingleton";
-import SpeechSynthesisSingleton from "./utils/SpeechSynthesisSingleton";
-import LoadingSpinner from "./components/LoadingSpinner";
+import { useState, useEffect, useCallback } from 'react'
+import './App.css'
+import { World, Model, OrbitCamera, Editor, usePreload } from 'lingo3d-react'
+import SpeechRecognitionSingleton from './utils/SpeechRecognitionSingleton'
+import SpeechSynthesisSingleton from './utils/SpeechSynthesisSingleton'
+import LoadingSpinner from './components/LoadingSpinner'
 
-const synth = SpeechSynthesisSingleton.getInstance();
+const recognition = SpeechRecognitionSingleton.getInstance()
+const synth = SpeechSynthesisSingleton.getInstance()
 
 function AiVirtualHuman() {
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState('')
+  const [outMessage, setOutputMessage] = useState('')
+  const [tempMsg, setTempMsg] = useState('')
+  const [openMic, setOpenMic] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [pose, setPose] = useState('idle')
+  let final_transcript = ""
 
-  const [outMessage, setOutputMessage] = useState("");
-  const [openMic, setOpenMic] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [pose, setPose] = useState("idle");
-
-  const onSpeechEnd = () => {
+  const onSpeechEnd = useCallback(() => {
     setPose("idle");
-    console.log("Speech completed");
-    // 在这里执行后续操作
-  };
+  }, []);
+
+  const onSpeechStart = useCallback(() => {
+    setPose("talking");
+  }, []);
 
   const handleSend = () => {
+    console.log(msg)
     if (isLoading || !msg) return;
-
     setIsLoading(true);
 
     // 将api_url替换为你的API接口地址
     const api_url = "https://ai.kidkid.tech/api/get-answer";
-
     // synth.speak('请耐心等候', onSpeechEnd)
     // 发送POST请求
     fetch(api_url, {
@@ -41,54 +44,73 @@ function AiVirtualHuman() {
       .then((response) => response.json())
       .then((data) => {
         // 处理响应数据
-        console.log(data);
-        setPose("talking");
-        synth.speak(JSON.stringify(data.data), onSpeechEnd);
         // synth.speak('谷歌展出了他们的智能语音助理', onSpeechEnd)
-        setOutputMessage(JSON.stringify(data.data));
+        setOutputMessage(data.data);
+        synth.speak(data.data, onSpeechStart, onSpeechEnd);
         setIsLoading(false);
       })
       .catch((error) => {
         console.error(error);
-        setPose("talking");
-        synth.speak("网络有些问题，请稍后重试", onSpeechEnd);
+        synth.speak("网络有些问题，请稍后重试", onSpeechStart, onSpeechEnd);
         setIsLoading(false);
       });
   };
 
   const handlePressStart = async () => {
-    setMsg("");
-    setOutputMessage("");
-    setOpenMic(true);
+    setMsg('')
+    setOutputMessage('')
+    setOpenMic(true)
   };
 
   const handlePressEnd = () => {
-    console.log("handlePressEnd");
-    handleSend();
-    setOpenMic(false);
+    console.log('handlePressEnd')
+    if (tempMsg) {
+      setMsg(msg + tempMsg)
+    }
+    setTempMsg('')
+    setOpenMic(false)
   };
 
-  //监听父页面 传过来的postmessage
-  useEffect(() => {
-    window.addEventListener("message", (e) => {
-      if (e.origin === "http://localhost:3000") {
-        const { msg } = e.data;
-        msg && setMsg(msg);
-      }
-    });
-  }, []);
 
-  //发送给父页面的数据
+  recognition.onresult = function (event: any) {
+    let interim_transcript = "";
+
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        final_transcript += event.results[i][0].transcript;
+      } else {
+        interim_transcript += event.results[i][0].transcript;
+      }
+    }
+
+    if (final_transcript) {
+      setTempMsg('')
+      setMsg(msg + final_transcript)
+    }
+
+    if (interim_transcript) {
+      setTempMsg(interim_transcript)
+    }
+  }
+
   useEffect(() => {
-    window.parent.postMessage({ openMic }, "*");
-  }, [openMic]);
+    if (!recognition)
+      return
+    if (openMic) {
+      recognition.start()
+    } else {
+      recognition.abort()
+      handleSend()
+    }
+
+  }, [openMic])
 
   return (
     <div>
       <World skybox={"sky1.jpg"}>
         <Model
           src="Girl.fbx"
-          scale={8}
+          scale={7}
           animations={{
             idle: "Idle.fbx",
             talking: "Talking.fbx",
@@ -97,18 +119,19 @@ function AiVirtualHuman() {
           x={-300}
           y={-100}
           z={100}
-          rotationY={50}
+          rotationY={20}
         />
-        {/* <OrbitCamera  
+        {/* <OrbitCamera
           active
-          // rotationY={320} 
-          // rotationX={10} 
-          // rotationZ={-20} 
+          rotationY={320}
+          rotationX={10}
+          rotationZ={-20}
         /> */}
-        {/* <Editor/> */}
+        {/* <Editor /> */}
       </World>
 
-      <div className="w-[30vw] h-full absolute right-0 top-0 bg-black text-white bg-opacity-10 flex items-center justify-center">
+
+      <div className="w-[30vw] min-w-[400px] h-full absolute right-0 top-0 bg-black text-white bg-opacity-10 flex items-center justify-center">
         {openMic && (
           <span className="absolute left-[50%] top-[50%] flex items-center justify-center">
             <div className="animate-ping rounded-full bg-yellow-500 w-12 h-12 absolute -left-6 -top-6"></div>
@@ -120,18 +143,18 @@ function AiVirtualHuman() {
             创新伙伴AI助手
           </div>
           {msg ? (
-            <div className="bg-white bg-opacity-10 p-4 rounded-lg">
+            <div className="bg-white bg-opacity-10 p-4 rounded-lg max-h-[30vh] overflow-y-scroll">
               <p className="text-white mb-2">问题：</p>
-              <p className="text-white">{msg}</p>
+              <p className="text-white">{msg}{tempMsg}</p>
             </div>
           ) : (
             <p className="text-white mb-2">请长按按钮，开始语音输入</p>
           )}
           {isLoading && <LoadingSpinner />}
           {outMessage && (
-            <div className="mt-4 bg-white bg-opacity-10 p-4 rounded-lg">
+            <div className="mt-4 bg-white bg-opacity-10 p-4 rounded-lg max-h-[50vh] overflow-y-scroll">
               <p className="text-white mb-2">回答：</p>
-              <p className="text-white">{outMessage}</p>
+              <p className="text-white whitespace-pre-wrap">{outMessage}</p>
             </div>
           )}
         </div>
@@ -164,7 +187,7 @@ function AiVirtualHuman() {
         )}
       </div>
     </div>
-  );
+  )
 }
 
 const App = () => {
@@ -194,4 +217,4 @@ const App = () => {
   return <AiVirtualHuman />;
 };
 
-export default App;
+export default App
