@@ -15,23 +15,27 @@ function AiVirtualHuman() {
   const [openMic, setOpenMic] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [pose, setPose] = useState('idle')
+
+  const message = msg + tempMsg
+
   let final_transcript = ""
 
   const onSpeechEnd = useCallback(() => {
-    setPose("idle");
+    setPose("idle")
   }, []);
 
   const onSpeechStart = useCallback(() => {
-    setPose("talking");
+    setPose("talking")
   }, []);
 
   const handleSend = () => {
-    console.log(msg)
-    if (isLoading || !msg) return;
+    if (!message) {
+      setIsLoading(false)
+      return
+    };
     setIsLoading(true);
-
     // 将api_url替换为你的API接口地址
-    const api_url = "https://ai.kidkid.tech/api/get-answer";
+    const api_url = "https://ai.kidkid.com/api/get-answer";
     // synth.speak('请耐心等候', onSpeechEnd)
     // 发送POST请求
     fetch(api_url, {
@@ -39,7 +43,7 @@ function AiVirtualHuman() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ question: msg }),
+      body: JSON.stringify({ question: message }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -58,19 +62,15 @@ function AiVirtualHuman() {
 
   const handlePressStart = async () => {
     setMsg('')
+    setTempMsg('')
     setOutputMessage('')
     setOpenMic(true)
   };
 
   const handlePressEnd = () => {
     console.log('handlePressEnd')
-    if (tempMsg) {
-      setMsg(msg + tempMsg)
-    }
-    setTempMsg('')
     setOpenMic(false)
   };
-
 
   recognition.onresult = function (event: any) {
     let interim_transcript = "";
@@ -83,13 +83,13 @@ function AiVirtualHuman() {
       }
     }
 
+    if (interim_transcript) {
+      setTempMsg(interim_transcript)
+    }
+
     if (final_transcript) {
       setTempMsg('')
       setMsg(msg + final_transcript)
-    }
-
-    if (interim_transcript) {
-      setTempMsg(interim_transcript)
     }
   }
 
@@ -97,13 +97,24 @@ function AiVirtualHuman() {
     if (!recognition)
       return
     if (openMic) {
+      setPose("idle")
+      synth.cancel()
       recognition.start()
     } else {
       recognition.abort()
-      handleSend()
+      setIsLoading(true)
+      setTimeout(() => {
+        handleSend()
+      }, 1000)
     }
-
   }, [openMic])
+
+  useEffect(() => {
+    return (() => {
+      setPose("idle")
+      synth.cancel()
+    })
+  }, [])
 
   return (
     <div>
@@ -117,38 +128,39 @@ function AiVirtualHuman() {
           }}
           animation={pose}
           x={-300}
-          y={-100}
-          z={100}
-          rotationY={20}
+          y={-40}
+          rotationY={pose === 'idle' ? 30 : 10}
         />
-        {/* <OrbitCamera
-          active
-          rotationY={320}
-          rotationX={10}
-          rotationZ={-20}
-        /> */}
+        {/* <OrbitCamera 
+          // active
+        // rotationY={320}
+        // rotationX={10}
+        // rotationZ={-20}
+        // />
+        */}
         {/* <Editor /> */}
       </World>
 
 
-      <div className="w-[30vw] min-w-[400px] h-full absolute right-0 top-0 bg-black text-white bg-opacity-10 flex items-center justify-center">
+      <div className="w-[30vw] min-w-[400px] h-full absolute right-0 top-0 bg-black text-white bg-opacity-10 flex flex-col items-center justify-center">
         {openMic && (
           <span className="absolute left-[50%] top-[50%] flex items-center justify-center">
             <div className="animate-ping rounded-full bg-yellow-500 w-12 h-12 absolute -left-6 -top-6"></div>
-            <div className="rounded-full bg-yellow-400 w-12 h-12 absolute -left-6 -top-6"></div>
+            <div className="rounded-full bg-yellow-400 w-12 h-12 absolute -left-6 -top-6 flex justify-center items-center">
+            </div>
           </span>
         )}
-        <div className="bg-gradient-to-r from-blue-500 to-purple-500 w-[80%] min-h-[400px] p-8 rounded-lg shadow-lg">
+        <div className=" bg-gradient-to-r from-blue-500 to-purple-500 w-[80%] min-h-[50%] p-8 rounded-lg shadow-lg">
           <div className="text-white font-bold text-xl mb-4">
             创新伙伴AI助手
           </div>
-          {msg ? (
+          {message ? (
             <div className="bg-white bg-opacity-10 p-4 rounded-lg max-h-[30vh] overflow-y-scroll">
               <p className="text-white mb-2">问题：</p>
-              <p className="text-white">{msg}{tempMsg}</p>
+              <p className="text-white">{message}</p>
             </div>
           ) : (
-            <p className="text-white mb-2">请长按按钮，开始语音输入</p>
+            <p className="text-white mb-2">点击下方按钮，开始语音输入</p>
           )}
           {isLoading && <LoadingSpinner />}
           {outMessage && (
@@ -159,29 +171,12 @@ function AiVirtualHuman() {
           )}
         </div>
         {!isLoading && (
-          <div className="box-border absolute bottom-0 w-full h-[200px]  flex items-center justify-center">
+          <div className="w-full box-border absolute bottom-[10%] flex items-center justify-center">
             <div
-              className="cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-2 px-4 rounded-full shadow-md transition duration-300 ease-in-out"
-              onTouchStart={handlePressStart}
-              onTouchEnd={handlePressEnd}
-              onMouseDown={handlePressStart}
-              onMouseUp={handlePressEnd}
-              onMouseLeave={openMic ? handlePressEnd : undefined}
+              className="text-lg cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-4 px-6 rounded-full shadow-md transition duration-300 ease-in-out"
+              onClick={openMic ? handlePressEnd : handlePressStart}
             >
-              <svg
-                viewBox="0 0 1024 1024"
-                version="1.1"
-                xmlns="http://www.w3.org/2000/svg"
-                p-id="28496"
-                width="2.5rem"
-                height="2.5rem"
-              >
-                <path
-                  d="M841.142857 402.285714v73.142857c0 169.142857-128 308.553143-292.571428 326.838858V877.714286h146.285714c20.004571 0 36.571429 16.566857 36.571428 36.571428s-16.566857 36.571429-36.571428 36.571429H329.142857c-20.004571 0-36.571429-16.566857-36.571428-36.571429s16.566857-36.571429 36.571428-36.571428h146.285714v-75.446857c-164.571429-18.285714-292.571429-157.696-292.571428-326.838858v-73.142857c0-20.004571 16.566857-36.571429 36.571428-36.571428s36.571429 16.566857 36.571429 36.571428v73.142857c0 141.129143 114.870857 256 256 256s256-114.870857 256-256v-73.142857c0-20.004571 16.566857-36.571429 36.571429-36.571428s36.571429 16.566857 36.571428 36.571428z m-146.285714-219.428571v292.571428c0 100.571429-82.285714 182.857143-182.857143 182.857143s-182.857143-82.285714-182.857143-182.857143V182.857143c0-100.571429 82.285714-182.857143 182.857143-182.857143s182.857143 82.285714 182.857143 182.857143z"
-                  fill="#ffffff"
-                  p-id="28497"
-                ></path>
-              </svg>
+              {openMic ? '结束说话' : '开始说话'}
             </div>
           </div>
         )}
@@ -193,26 +188,26 @@ function AiVirtualHuman() {
 const App = () => {
   const progress = usePreload(
     ["sky1.jpg", "Girl.fbx", "Idle.fbx", "Talking.fbx"],
-    "12.1mb"
+    "6.89mb"
   );
-  if (progress < 100)
-    return (
-      <div
-        style={{
-          width: "100vw",
-          height: "100vh",
-          left: 0,
-          top: 0,
-          backgroundColor: "black",
-          color: "white",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        loading {Math.round(progress)}%
-      </div>
-    );
+  // if (progress < 100)
+  //   return (
+  //     <div
+  //       style={{
+  //         width: "100vw",
+  //         height: "100vh",
+  //         left: 0,
+  //         top: 0,
+  //         backgroundColor: "black",
+  //         color: "white",
+  //         display: "flex",
+  //         alignItems: "center",
+  //         justifyContent: "center",
+  //       }}
+  //     >
+  //       loading {Math.round(progress)}%
+  //     </div>
+  //   );
 
   return <AiVirtualHuman />;
 };

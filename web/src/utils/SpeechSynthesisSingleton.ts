@@ -26,6 +26,12 @@ class SpeechSynthesisSingleton {
     return this.voices;
   }
 
+  public cancel(): void {
+    if (this.synth && this.synth.speaking) {
+      this.synth.cancel();
+    }
+  }
+
   public speak(
     text: string,
     onSpeechStart?: () => void,
