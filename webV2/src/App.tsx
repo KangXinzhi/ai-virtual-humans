@@ -70,6 +70,7 @@ function AiVirtualHuman() {
   const handlePressEnd = () => {
     console.log('handlePressEnd')
     setOpenMic(false)
+    setIsLoading(true)
   };
 
   recognition.onresult = function (event: any) {
@@ -93,6 +94,8 @@ function AiVirtualHuman() {
     }
   }
 
+  recognition.onend = handleSend
+
   useEffect(() => {
     if (!recognition)
       return
@@ -101,11 +104,7 @@ function AiVirtualHuman() {
       synth.cancel()
       recognition.start()
     } else {
-      recognition.abort()
-      setIsLoading(true)
-      setTimeout(() => {
-        handleSend()
-      }, 1000)
+      recognition.stop()
     }
   }, [openMic])
 
@@ -144,14 +143,13 @@ function AiVirtualHuman() {
             talking: "Talking.fbx",
           }}
           animation={pose}
-
+          rotationY={pose === 'idle' ? 0 : -20}
         />
         <OrbitCamera
           active
-          // rotationY={320}
-          // rotationX={10}
-          // rotationZ={-20}
-          y={100}
+          rotationX={-20}
+          y={-70}
+          x={10}
         />
 
         {/* <Editor /> */}
@@ -159,22 +157,19 @@ function AiVirtualHuman() {
 
 
       <div className="w-[240px] h-full absolute right-[50%] translate-x-[50%]  top-0 text-white bg-opacity-0 flex flex-col items-center">
-        <div className="w-full box-border absolute top-[10%] flex flex-row items-center justify-center">
+        <div className="flex flex-row items-center justify-center">
           {isLoading ? (
-            message && (
-              <div>
-                {message && (
-                  <div className="bg-white bg-opacity-10 p-4 rounded-lg max-h-[30vh] overflow-y-scroll">
-                    <p className="text-white mb-2">问题：</p>
-                    <p className="text-white">{message}</p>
-                  </div>
-                )}
-                <LoadingSpinner />
-              </div>
-            )
+            <div className='absolute bottom-[4%]'>
+              {message && (
+                <div className="bg-white bg-opacity-10 p-4 rounded-lg max-h-[30vh] overflow-y-scroll">
+                  <p className="text-white">{message}</p>
+                </div>
+              )}
+              <LoadingSpinner />
+            </div>
           ) : (
             <div
-              className="text-lg cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out"
+              className="absolute bottom-[10%] text-lg cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out"
               onClick={openMic ? handlePressEnd : handlePressStart}
             >
 
