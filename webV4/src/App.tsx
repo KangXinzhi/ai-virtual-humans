@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { World, Model, OrbitCamera, Editor, usePreload } from 'lingo3d-react'
+import { World, Model, OrbitCamera, Editor, usePreload, useSpring } from 'lingo3d-react'
 import SpeechRecognitionSingleton from './utils/SpeechRecognitionSingleton'
 import SpeechSynthesisSingleton from './utils/SpeechSynthesisSingleton'
 import LoadingSpinner from './components/LoadingSpinner'
@@ -132,6 +132,9 @@ function AiVirtualHuman() {
     }
   }, [showAiVirtualHumanIframe])
 
+  const springRotationY = pose === 'idle' ? 0 : 30
+  const springX = pose === 'idle' ? 20 : 50
+
   return (
     <div>
       <World
@@ -139,30 +142,40 @@ function AiVirtualHuman() {
       >
         <Model
           src="map.glb"
-          scale={2}
-          // physics="map"
-          innerRotationY={180}
-          y={-135}
-          x={10}
-          rotationY={50}
+          scale={0.8}
+          // y={-260}
+          // x={30}
+          // rotationY={0}
+          // rotationX={0}
+          x={0}
+          y={-430}
+          z={-330}
+          rotationX={0}
         />
         <Model
           src="Girl.fbx"
-          scale={4}
+          scale={5.5}
           animations={{
-            idle: "Idle.fbx",
-            talking: "Talking.fbx",
+            idle: "IdleV5.glb",
+            talking: "TalkingV5.glb",
           }}
-          // physics="character"
+
           animation={pose}
-          rotationY={pose === 'idle' ? 0 : -30}
-          x={pose === 'idle' ? 0 : 30}
+          // x={30}
+          // y={-28}
+          // rotationY={35}
+          x={160}
+          y={-400}
+          z={-120}
+          rotationX={92}
+          rotationZ={-34}
         />
         <OrbitCamera
           active
-          rotationX={-20}
-          y={-70}
-          x={10}
+          rotationX={-10}
+          // rotationY={-20}
+          y={-100}
+          x={0}
         />
 
         {/* <Editor /> */}
@@ -182,7 +195,7 @@ function AiVirtualHuman() {
             </div>
           ) : (
             <div
-              className="absolute bottom-[10%] text-lg cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out"
+              className="absolute bottom-[5%] text-lg cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out"
               onClick={openMic ? handlePressEnd : handlePressStart}
             >
 

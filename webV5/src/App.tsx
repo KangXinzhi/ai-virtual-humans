@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { World, Model, OrbitCamera, Editor, usePreload } from 'lingo3d-react'
+import { World, Model, OrbitCamera, Editor, usePreload, useSpring, Camera } from 'lingo3d-react'
 import SpeechRecognitionSingleton from './utils/SpeechRecognitionSingleton'
 import SpeechSynthesisSingleton from './utils/SpeechSynthesisSingleton'
 import LoadingSpinner from './components/LoadingSpinner'
@@ -132,37 +132,42 @@ function AiVirtualHuman() {
     }
   }, [showAiVirtualHumanIframe])
 
+
   return (
     <div>
       <World
         skybox={'bg.png'}
       >
         <Model
-          src="map.glb"
-          scale={2}
-          // physics="map"
-          innerRotationY={180}
-          y={-135}
-          x={10}
-          rotationY={50}
+          src="Map.glb"
+          scale={1}
+          x={0}
+          y={-530}
+          z={-330}
+          rotationX={0}
         />
         <Model
           src="Girl.fbx"
-          scale={4}
+          scale={6}
           animations={{
-            idle: "Idle.fbx",
-            talking: "Talking.fbx",
+            idle: "Idle.glb",
+            talking: "Talking.glb",
           }}
-          // physics="character"
+
           animation={pose}
-          rotationY={pose === 'idle' ? 0 : -30}
-          x={pose === 'idle' ? 0 : 30}
+          x={170}
+          y={-500}
+          z={-75}
+          rotationX={92}
+          rotationZ={-34}
         />
-        <OrbitCamera
+        <Camera
           active
-          rotationX={-20}
-          y={-70}
-          x={10}
+          rotationX={-10}
+          // rotationY={-20}
+          y={-100}
+          x={0}
+          z={600}
         />
 
         {/* <Editor /> */}
@@ -182,7 +187,7 @@ function AiVirtualHuman() {
             </div>
           ) : (
             <div
-              className="absolute bottom-[10%] text-lg cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out"
+              className="absolute bottom-[5%] text-lg cursor-pointer bg-gradient-to-r from-purple-500 to-pink-500 hover:from-pink-500 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-full shadow-md transition duration-300 ease-in-out"
               onClick={openMic ? handlePressEnd : handlePressStart}
             >
 
@@ -212,7 +217,6 @@ function AiVirtualHuman() {
                 </span>)}
             </div>
           )}
-
         </div>
       </div>
     </div>
@@ -221,8 +225,8 @@ function AiVirtualHuman() {
 
 const App = () => {
   const progress = usePreload(
-    ["bg.png", "Girl.fbx", "Idle.fbx", "Talking.fbx", "map.glb"],
-    "6.67mb"
+    ["bg.png", "Girl.fbx", "Idle.glb", "Talking.glb", "Map.glb"],
+    "5.93mb"
   );
   if (progress < 100)
     return (
