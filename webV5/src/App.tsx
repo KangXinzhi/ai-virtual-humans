@@ -165,7 +165,7 @@ function AiVirtualHuman() {
           active
           rotationX={-10}
           // rotationY={-20}
-          y={-100}
+          y={120}
           x={0}
           z={600}
         />
