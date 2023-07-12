@@ -120,7 +120,7 @@ function AiVirtualHuman() {
   useEffect(() => {
     window.addEventListener("message", (e) => {
       console.log('message', e)
-      if (e.origin.includes("http://localhost:3000") || e.origin.includes("https://classroom.dev.uskid.com") || e.origin.includes("https://classroom.kidkid.com")) {
+      if (e.origin.includes("http://localhost:3000") || e.origin.includes("https://classroom")) {
         const { showAiVirtualHumanIframe, fullMode } = e.data;
         showAiVirtualHumanIframe !== undefined && setShowAiVirtualHumanIframe(showAiVirtualHumanIframe)
         console.log('fullMode', fullMode)
@@ -139,10 +139,10 @@ function AiVirtualHuman() {
   return (
     <div>
       <World
-        skybox={'bg.png'}
+        skybox={fullScreenMode ? 'sky1.jpg' : 'bg.png'}
       >
         <Model
-          src="map.glb"
+          src="mapV6.glb"
           scale={0.3}
           // physics="map"
           innerRotationY={180}
@@ -153,11 +153,11 @@ function AiVirtualHuman() {
 
         />
         <Model
-          src="Girl.fbx"
+          src="GirlV6.fbx"
           scale={2.2}
           animations={{
-            idle: "IdleV5.fbx",
-            talking: "TalkingV5.fbx",
+            idle: "IdleV6.fbx",
+            talking: "TalkingV6.fbx",
           }}
           // physics="character"
           animation={pose}
@@ -288,8 +288,8 @@ function AiVirtualHuman() {
 
 const App = () => {
   const progress = usePreload(
-    ["bg.png", "Girl.fbx", "IdleV5.fbx", "TalkingV5.fbx", "map.glb"],
-    "6.67mb"
+    ["bg.png", "sky1.jpg", "GirlV6.fbx", "IdleV6.fbx", "TalkingV6.fbx", "mapV6.glb"],
+    "6.65mb"
   );
   if (progress < 100)
     return (
